@@ -3,19 +3,17 @@ package com.acme.room_booking_system.service;
 import com.acme.room_booking_system.helper.RoomHelper;
 import com.acme.room_booking_system.model.Room;
 import com.acme.room_booking_system.repository.RoomRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class RoomService {
 
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private RoomHelper roomHelper;
+    private final RoomRepository roomRepository;
+    private final RoomHelper roomHelper;
 
     public Room createRoom(String name) {
         roomHelper.isRoomNameExists(name);

@@ -6,9 +6,8 @@ import com.acme.room_booking_system.model.BookingRequest;
 import com.acme.room_booking_system.model.BookingResponse;
 import com.acme.room_booking_system.model.Room;
 import com.acme.room_booking_system.repository.BookingRepository;
-import com.acme.room_booking_system.repository.RoomRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -18,16 +17,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private RoomHelper roomHelper;
+    private final BookingRepository bookingRepository;
+    private final RoomHelper roomHelper;
 
     public List<BookingResponse> getBookingsByRoom(String roomName, LocalDate date) {
         Room room = roomHelper.findRoomByName(roomName);
