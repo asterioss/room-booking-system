@@ -15,22 +15,9 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RoomAlreadyExistsException.class)
-    public ResponseEntity<ApiError> handleRoomAlreadyExistsException(RoomAlreadyExistsException ex, HttpServletRequest request) {
-        log.error("Error occurred: {}", ex.getMessage());
-
-        ApiError errorResponse = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(), //HttpStatus.CONFLICT.value(),  // 409 Conflict for resource duplication
-                HttpStatus.BAD_REQUEST.getReasonPhrase(), //HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST); //HttpStatus.CONFLICT
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+    @ExceptionHandler({RoomAlreadyExistsException.class, InvalidBookingDurationException.class, IllegalArgumentException.class,
+            BookingOverlapException.class, BookingCancellationException.class, RoomDeletionException.class})
+    public ResponseEntity<ApiError> handleBadRequestExceptions(RuntimeException ex, HttpServletRequest request) {
         log.error("Error occurred: {}", ex.getMessage());
 
         ApiError errorResponse = new ApiError(

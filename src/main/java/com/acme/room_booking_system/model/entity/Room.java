@@ -1,6 +1,5 @@
-package com.acme.room_booking_system.model;
+package com.acme.room_booking_system.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,6 @@ public class Room {
     private String name;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference  //ensures that bookings are included in the Room JSON response
     private List<Booking> bookings = new ArrayList<>();
 
     @CreatedDate

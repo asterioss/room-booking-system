@@ -23,7 +23,6 @@ public class AppAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
-        //set the response status to 401 Unauthorized
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
 
@@ -35,7 +34,7 @@ public class AppAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 request.getRequestURI()
         );
 
-        //convert the apiError response to json and write it to the response
+        //convert the api error to json and write it to the response
         response.getWriter().write(objectMapper.writeValueAsString(apiError));
     }
 }

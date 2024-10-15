@@ -1,7 +1,7 @@
 package com.acme.room_booking_system.helper;
 
 import com.acme.room_booking_system.exception.RoomAlreadyExistsException;
-import com.acme.room_booking_system.model.Room;
+import com.acme.room_booking_system.model.entity.Room;
 import com.acme.room_booking_system.repository.RoomRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ public class RoomHelper {
                 .orElseThrow(() -> new EntityNotFoundException("Room not found with name: " + name));
     }
 
-    //validate if a room name already exists
-    public void validateRoomNameUniqueness(String name) {
+    //check if a room name already exists
+    public void checkRoomNameUniqueness(String name) {
         if (roomRepository.existsByName(name)) {
             throw new RoomAlreadyExistsException("Room with name " + name + " already exists.");
         }

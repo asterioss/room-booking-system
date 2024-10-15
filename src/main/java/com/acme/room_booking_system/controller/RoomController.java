@@ -52,27 +52,6 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(roomResponse);
     }
 
-    /*@GetMapping("/availability")
-    @Operation(summary = "Get Available Rooms", description = "Retrieve available rooms for a given date and time range")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Available rooms retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid parameters",
-                    content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ApiError.class)))
-    })
-    public ResponseEntity<List<RoomResponse>> getAvailableRooms(@RequestParam LocalDate date,
-                                                                @RequestParam LocalTime startTime,
-                                                                @RequestParam LocalTime endTime) {
-        // Validate time range
-        if (startTime.isAfter(endTime)) {
-            throw new IllegalArgumentException("Start time cannot be after end time.");
-        }
-
-        List<RoomResponse> availableRooms = roomService.findAvailableRooms(date, startTime, endTime);
-        return ResponseEntity.ok(availableRooms);
-    }*/
-
     @PutMapping("/{id}")
     @Operation(summary = "Update Room", description = "Update the name of an existing room")
     @ApiResponses(value = {

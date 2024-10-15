@@ -1,7 +1,8 @@
 package com.acme.room_booking_system.service;
 
+import com.acme.room_booking_system.exception.RoomDeletionException;
 import com.acme.room_booking_system.helper.RoomHelper;
-import com.acme.room_booking_system.model.Room;
+import com.acme.room_booking_system.model.entity.Room;
 import com.acme.room_booking_system.model.dto.RoomRequest;
 import com.acme.room_booking_system.model.dto.RoomResponse;
 import com.acme.room_booking_system.repository.RoomRepository;
@@ -19,7 +20,7 @@ public class RoomService {
     private final RoomHelper roomHelper;
 
     public RoomResponse createRoom(RoomRequest request) {
-        roomHelper.validateRoomNameUniqueness(request.getName());
+        roomHelper.checkRoomNameUniqueness(request.getName());
 
         Room room = new Room();
         room.setName(request.getName());
@@ -37,8 +38,7 @@ public class RoomService {
     public RoomResponse updateRoom(Long roomId, RoomRequest request) {
         Room room = roomHelper.findRoomById(roomId);
 
-        //check if new name doesn't exist
-        roomHelper.validateRoomNameUniqueness(request.getName());
+        roomHelper.checkRoomNameUniqueness(request.getName());
 
         room.setName(request.getName());
 
@@ -51,7 +51,7 @@ public class RoomService {
 
         //prevent deletion if the room has active bookings
         if (!room.getBookings().isEmpty()) {
-            throw new IllegalArgumentException("Cannot delete room with active bookings.");
+            throw new RoomDeletionException("Cannot delete room with active bookings.");
         }
 
         roomRepository.delete(room);

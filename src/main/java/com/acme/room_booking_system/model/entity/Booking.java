@@ -1,6 +1,5 @@
-package com.acme.room_booking_system.model;
+package com.acme.room_booking_system.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -28,7 +27,6 @@ public class Booking {
 
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
-    @JsonBackReference  //avoid infinite recursion, ensures the room reference is not serialized in the Booking JSON response
     private Room room;
 
     @NotNull

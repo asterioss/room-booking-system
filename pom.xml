@@ -19,9 +19,9 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<springdoc.version>2.6.0</springdoc.version>
 		<groovy.version>4.0.23</groovy.version>
 		<spock.version>2.4-M1-groovy-4.0</spock.version>
-		<springdoc.version>2.6.0</springdoc.version>
 	</properties>
 
 	<dependencies>
@@ -49,19 +49,17 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
 
 		<!-- H2 Database -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
 		</dependency>
 
 		<!-- Swagger UI -->

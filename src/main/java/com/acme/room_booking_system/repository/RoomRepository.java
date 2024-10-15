@@ -1,6 +1,6 @@
 package com.acme.room_booking_system.repository;
 
-import com.acme.room_booking_system.model.Room;
+import com.acme.room_booking_system.model.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
