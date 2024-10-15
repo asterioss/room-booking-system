@@ -31,7 +31,7 @@ public class AppAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 LocalDateTime.now(),
                 HttpServletResponse.SC_UNAUTHORIZED,
                 "Unauthorized",
-                "Access denied - authentication required",
+                authException.getMessage(),
                 request.getRequestURI()
         );
 

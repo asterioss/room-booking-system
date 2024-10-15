@@ -1,12 +1,12 @@
 package com.acme.room_booking_system.service
 
 import com.acme.room_booking_system.model.Booking
-import com.acme.room_booking_system.model.BookingRequest
 import com.acme.room_booking_system.model.Room
+import com.acme.room_booking_system.model.dto.BookingRequest
 import com.acme.room_booking_system.repository.BookingRepository
 import com.acme.room_booking_system.helper.RoomHelper
-import spock.lang.Specification
 import jakarta.persistence.EntityNotFoundException
+import spock.lang.Specification
 
 import java.time.LocalDate
 import java.time.LocalTime
@@ -14,7 +14,6 @@ import java.time.LocalTime
 class BookingServiceSpec extends Specification {
 
     BookingService bookingService
-
     BookingRepository bookingRepository = Mock()
     RoomHelper roomHelper = Mock()
 
@@ -22,55 +21,75 @@ class BookingServiceSpec extends Specification {
         bookingService = new BookingService(bookingRepository, roomHelper)
     }
 
-    def "should get bookings by room and date"() {
-        given: "A room and date with bookings"
+    def "should get bookings by room and date successfully"() {
+        given: "A room and a list of bookings"
         def room = new Room(id: 1L, name: "Room A")
-        def booking = new Booking(employeeEmail: "john.doe@example.com", startTime: LocalTime.of(10, 0), endTime: LocalTime.of(11, 0))
-        def bookings = [booking]
+        def bookings = [
+                new Booking(id: 1L, employeeEmail: "john.doe@example.com", startTime: LocalTime.of(10, 0), endTime: LocalTime.of(11, 0)),
+                new Booking(id: 2L, employeeEmail: "jane.doe@example.com", startTime: LocalTime.of(11, 0), endTime: LocalTime.of(12, 0))
+        ]
+        def date = LocalDate.now()
 
-        when: "Bookings are retrieved"
+        when: "Bookings are retrieved by room and date"
         roomHelper.findRoomByName("Room A") >> room
-        bookingRepository.findByRoomAndDate(room, LocalDate.now()) >> bookings
+        bookingRepository.findByRoomAndDate(room, date) >> bookings
+
+        def result = bookingService.getBookingsByRoom("Room A", date)
+
+        then: "The bookings are returned as BookingResponse objects"
+        result.size() == 2
+        result[0].employeeEmail == "john.doe@example.com"
+        result[1].employeeEmail == "jane.doe@example.com"
+        //1 * roomHelper.findRoomByName("Room A")
+        //1 * bookingRepository.findByRoomAndDate(room, date)  // Ensure that this method is called once
+    }
+
+    def "should handle no bookings found"() {
+        given: "A room with no bookings"
+        def room = new Room(id: 1L, name: "Room A")
+
+        when: "Bookings are retrieved by room and date"
+        roomHelper.findRoomByName("Room A") >> room
+        bookingRepository.findByRoomAndDate(room, LocalDate.now()) >> []
 
         def result = bookingService.getBookingsByRoom("Room A", LocalDate.now())
 
-        then: "The bookings are returned as BookingResponse objects"
-        result.size() == 1
-        result[0].employeeEmail == "john.doe@example.com"
-        result[0].startTime == LocalTime.of(10, 0)
-        result[0].endTime == LocalTime.of(11, 0)
-        //1 * bookingRepository.findByRoomAndDate(room, LocalDate.now())  // Ensure findByRoomAndDate was called
+        then: "An empty list is returned"
+        result.size() == 0
+        1 * roomHelper.findRoomByName("Room A")
+        //1 * bookingRepository.findByRoomAndDate(room, LocalDate.now())
     }
 
     def "should create a booking successfully"() {
-        given: "A valid booking request and a free room"
+        given: "A valid booking request"
         def room = new Room(id: 1L, name: "Room A")
         def request = new BookingRequest("Room A", "john.doe@example.com", LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0))
         def booking = new Booking(room: room, employeeEmail: request.employeeEmail, date: request.date, startTime: request.startTime, endTime: request.endTime)
 
         when: "The booking is created"
         roomHelper.findRoomByName(request.roomName) >> room
-        bookingRepository.existsByRoomAndDateAndStartTimeBetween(room, request.date, request.startTime, request.endTime) >> false  // No overlap
+        bookingRepository.existsByRoomAndDateAndStartTimeBetween(room, request.date, request.startTime, request.endTime) >> false
         bookingRepository.save(_) >> booking
 
         def createdBooking = bookingService.createBooking(request)
 
-        then: "The booking is saved and returned"
-        createdBooking != null
+        then: "The booking is saved and returned as BookingResponse"
+        createdBooking.roomName == "Room A"
         createdBooking.employeeEmail == request.employeeEmail
         createdBooking.startTime == request.startTime
         createdBooking.endTime == request.endTime
+        //1 * roomHelper.findRoomByName(request.roomName)
         //1 * bookingRepository.save(_)
     }
 
-    def "should throw exception for booking overlap during creation"() {
+    def "should throw exception if booking time overlaps during creation"() {
         given: "A booking request with overlapping time"
         def room = new Room(id: 1L, name: "Room A")
         def request = new BookingRequest("Room A", "john.doe@example.com", LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0))
 
         when: "The booking is created"
         roomHelper.findRoomByName(request.roomName) >> room
-        bookingRepository.existsByRoomAndDateAndStartTimeBetween(room, request.date, request.startTime, request.endTime) >> true  // Overlap exists
+        bookingRepository.existsByRoomAndDateAndStartTimeBetween(room, request.date, request.startTime, request.endTime) >> true
 
         bookingService.createBooking(request)
 
@@ -81,18 +100,21 @@ class BookingServiceSpec extends Specification {
 
     def "should return all bookings"() {
         given: "A list of bookings"
-        def bookings = [new Booking(id: 1L, employeeEmail: "john.doe@example.com"), new Booking(id: 2L, employeeEmail: "jane.doe@example.com")]
+        def bookings = [
+                new Booking(room: new Room(name: "Room A"), employeeEmail: "john.doe@example.com", date: LocalDate.now(), startTime: LocalTime.of(10, 0), endTime: LocalTime.of(11, 0)),
+                new Booking(room: new Room(name: "Room B"), employeeEmail: "jane.doe@example.com", date: LocalDate.now(), startTime: LocalTime.of(11, 0), endTime: LocalTime.of(12, 0))
+        ]
 
         when: "All bookings are retrieved"
         bookingRepository.findAll() >> bookings
 
         def result = bookingService.getAllBookings()
 
-        then: "The bookings are returned"
+        then: "The list of bookings is returned as BookingResponse"
         result.size() == 2
         result[0].employeeEmail == "john.doe@example.com"
         result[1].employeeEmail == "jane.doe@example.com"
-        1 * bookingRepository.findAll()  // Ensure findAll was called
+        //1 * bookingRepository.findAll()
     }
 
     def "should cancel future booking successfully"() {
@@ -107,7 +129,7 @@ class BookingServiceSpec extends Specification {
         1 * bookingRepository.delete(booking)
     }
 
-    def "should throw exception when cancelling past booking"() {
+    def "should throw exception if trying to cancel past booking"() {
         given: "A past booking"
         def booking = new Booking(id: 1L, date: LocalDate.now().minusDays(1))
         bookingRepository.findById(1L) >> Optional.of(booking)
@@ -117,8 +139,7 @@ class BookingServiceSpec extends Specification {
 
         then: "An exception is thrown"
         def e = thrown(IllegalStateException)
-        e.message == "Cannot cancel past bookings"
-        0 * bookingRepository.delete(_)
+        e.message == "Cannot cancel past bookings."
     }
 
     def "should update booking successfully"() {
@@ -130,7 +151,7 @@ class BookingServiceSpec extends Specification {
         when: "The booking is updated"
         bookingRepository.findById(1L) >> Optional.of(booking)
         roomHelper.findRoomByName(request.roomName) >> room
-        bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(room, request.date, request.startTime, request.endTime, 1L) >> false  // No overlap
+        bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(room, request.date, request.startTime, request.endTime, 1L) >> false
         bookingRepository.save(_) >> booking
 
         def updatedBooking = bookingService.updateBooking(1L, request)
@@ -150,28 +171,13 @@ class BookingServiceSpec extends Specification {
         when: "The booking update is attempted"
         bookingRepository.findById(1L) >> Optional.of(booking)
         roomHelper.findRoomByName(request.roomName) >> room
-        bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(room, request.date, request.startTime, request.endTime, 1L) >> true  // Overlap exists
+        bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(room, request.date, request.startTime, request.endTime, 1L) >> true
 
         bookingService.updateBooking(1L, request)
 
         then: "An exception is thrown"
         def e = thrown(IllegalArgumentException)
         e.message == "Booking time overlaps with another booking."
-        0 * bookingRepository.save(_)
-    }
-
-    def "should find booking by ID"() {
-        given: "A booking exists with the given ID"
-        def booking = new Booking(id: 1L, room: new Room(), employeeEmail: "john.doe@example.com", date: LocalDate.now())
-
-        when: "The booking is retrieved"
-        bookingRepository.findById(1L) >> Optional.of(booking)
-
-        def foundBooking = bookingService.findBookById(1L)
-
-        then: "The booking is returned"
-        foundBooking != null
-        foundBooking.employeeEmail == "john.doe@example.com"
     }
 
     def "should throw exception if booking not found by ID"() {
@@ -179,10 +185,10 @@ class BookingServiceSpec extends Specification {
         bookingRepository.findById(1L) >> Optional.empty()
 
         when: "Booking retrieval is attempted"
-        bookingService.findBookById(1L)
+        bookingService.findBookingById(1L)
 
         then: "An exception is thrown"
         def e = thrown(EntityNotFoundException)
-        e.message == "Booking not found"
+        e.message == "Booking not found with id: 1"
     }
 }

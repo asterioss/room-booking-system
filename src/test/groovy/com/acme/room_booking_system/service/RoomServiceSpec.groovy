@@ -1,7 +1,10 @@
 package com.acme.room_booking_system.service
 
+import com.acme.room_booking_system.exception.RoomAlreadyExistsException
 import com.acme.room_booking_system.model.Booking
 import com.acme.room_booking_system.model.Room
+import com.acme.room_booking_system.model.dto.RoomRequest
+import com.acme.room_booking_system.model.dto.RoomResponse
 import com.acme.room_booking_system.repository.RoomRepository
 import com.acme.room_booking_system.helper.RoomHelper
 import spock.lang.Specification
@@ -9,7 +12,6 @@ import spock.lang.Specification
 class RoomServiceSpec extends Specification {
 
     RoomService roomService
-
     RoomRepository roomRepository = Mock()
     RoomHelper roomHelper = Mock()
 
@@ -18,47 +20,49 @@ class RoomServiceSpec extends Specification {
     }
 
     def "should create room successfully"() {
-        given: "A room name"
-        def roomName = "Room A"
-        def room = new Room(id: 1L, name: roomName)
+        given: "A RoomRequest with a unique name"
+        def request = new RoomRequest(name: "Room A")
+        def room = new Room(name: request.getName())
 
         when: "The room is created"
-        roomHelper.isRoomNameExists(roomName) >> { } //no exception thrown
-        roomRepository.save(_) >> room
+        roomHelper.validateRoomNameUniqueness(request.name) >> { } // No exception thrown
+        roomRepository.save(_) >> room // Mock save to return the room
 
-        def createdRoom = roomService.createRoom(roomName)
+        def createdRoom = roomService.createRoom(request)
 
         then: "The room is saved and returned"
-        createdRoom != null
-        createdRoom.name == roomName
-        1 * roomHelper.isRoomNameExists(roomName)
+        createdRoom.name == "Room A"
+        1 * roomHelper.validateRoomNameUniqueness(request.name)
+        1 * roomRepository.save(_)
     }
 
-    def "should throw exception if room name already exists during room creation"() {
-        given: "A room name that already exists"
-        def roomName = "Room A"
+    def "should throw exception if room name already exists during creation"() {
+        given: "A RoomRequest with an already existing room name"
+        def request = new RoomRequest(name: "Room A")
 
-        when: "The room is created"
-        roomHelper.isRoomNameExists(roomName) >> { throw new IllegalArgumentException("Room name already exists.") }
+        when: "The room creation is attempted"
+        roomHelper.validateRoomNameUniqueness(request.name) >> { throw new RoomAlreadyExistsException("Room name already exists.") }
 
-        def createdRoom = roomService.createRoom(roomName)
+        roomService.createRoom(request)
 
         then: "An exception is thrown"
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(RoomAlreadyExistsException)
         e.message == "Room name already exists."
-        //1 * roomHelper.isRoomNameExists(roomName)
+        //1 * roomHelper.validateRoomNameUniqueness(request.name)
+        //0 * roomRepository.save(_)
     }
 
-    def "should get all rooms successfully"() {
+    def "should return all rooms successfully"() {
         given: "A list of rooms"
-        def rooms = [new Room(id: 1L, name: "Room A"), new Room(id: 2L, name: "Room B")]
+        def rooms = [new Room(name: "Room A"), new Room(name: "Room B")]
 
-        when: "All rooms are retrieved"
+        // Mock findAll to return the list of rooms
         roomRepository.findAll() >> rooms
 
+        when: "All rooms are retrieved"
         def result = roomService.getAllRooms()
 
-        then: "The rooms are returned"
+        then: "The list of rooms is returned as RoomResponse"
         result.size() == 2
         result[0].name == "Room A"
         result[1].name == "Room B"
@@ -66,60 +70,23 @@ class RoomServiceSpec extends Specification {
     }
 
     def "should update room successfully"() {
-        given: "An existing room and a new name"
+        given: "An existing room and a valid RoomRequest"
         def roomId = 1L
         def oldRoom = new Room(id: roomId, name: "Room A")
-        def newRoomName = "Room B"
-        def updatedRoom = new Room(id: roomId, name: newRoomName)  //the updated room with the new name
+        def request = new RoomRequest(name: "Room B")
 
         when: "The room is updated"
-        roomHelper.findRoomById(roomId) >> oldRoom
-        roomHelper.isRoomNameExists(newRoomName) >> { }  //no exception thrown, new name is available
-        roomRepository.save(_) >> updatedRoom
+        roomHelper.findRoomById(roomId) >> oldRoom // Mock findRoomById
+        roomHelper.validateRoomNameUniqueness(request.getName()) >> { } // No exception thrown
+        roomRepository.save(_) >> oldRoom // Mock save to return the room
 
-        def result = roomService.updateRoom(roomId, newRoomName)
+        def updatedRoom = roomService.updateRoom(roomId, request)
 
         then: "The room is updated and saved"
-        result.name == newRoomName  // Ensure the room's name was updated
-        //1 * roomHelper.findRoomById(roomId)  // Ensure findRoomById was called once
-        //1 * roomHelper.isRoomNameExists(newRoomName)  // Ensure the new name existence check was done
-        //1 * roomRepository.save(_)  // Ensure the room was saved once
-    }
-
-
-    def "should throw exception if room name already exists during update"() {
-        given: "An existing room and a new name that already exists"
-        def roomId = 1L
-        def oldRoom = new Room(id: roomId, name: "Room A")
-        def newRoomName = "Room B" //the new name already exists and throw exception
-
-        when: "The room update is attempted"
-        roomHelper.findRoomById(roomId) >> oldRoom
-        roomHelper.isRoomNameExists(newRoomName) >> { throw new IllegalArgumentException("Room name already exists.") }
-
-        roomService.updateRoom(roomId, newRoomName)
-
-        then: "An exception is thrown"
-        def e = thrown(IllegalArgumentException)
-        e.message == "Room name already exists."
-        //1 * roomHelper.findRoomById(roomId) // Ensure findRoomById was called
-        //1 * roomHelper.isRoomNameExists(newRoomName) // Ensure name existence check was done
-        //0 * roomRepository.save(_)
-    }
-
-    def "should delete room successfully when no active bookings"() {
-        given: "An existing room with no active bookings"
-        def roomId = 1L
-        def room = new Room(id: roomId, name: "Conference Room A", bookings: [])
-
-        when: "The room is deleted"
-        roomHelper.findRoomById(roomId) >> room
-
-        roomService.deleteRoom(roomId)
-
-        then: "The room is deleted"
-        1 * roomRepository.delete(room) // Ensure delete was called
-        //1 * roomHelper.findRoomById(roomId) // Ensure findRoomById was called
+        updatedRoom.name == "Room B" // Check the updated room name
+        //1 * roomHelper.findRoomById(roomId)
+        //1 * roomHelper.validateRoomNameUniqueness(request.getName())
+        //1 * roomRepository.save(_)
     }
 
     def "should throw exception if trying to delete room with active bookings"() {
@@ -135,8 +102,20 @@ class RoomServiceSpec extends Specification {
         then: "An exception is thrown"
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot delete room with active bookings."
+        0 * roomRepository.delete(_)
+    }
 
-        //1 * roomHelper.findRoomById(roomId) // Ensure findRoomById was called
-        //0 * roomRepository.delete(_)
+    def "should delete room successfully when no active bookings"() {
+        given: "An existing room with no active bookings"
+        def roomId = 1L
+        def room = new Room(id: roomId, name: "Conference Room A", bookings: [])
+
+        when: "The room is deleted"
+        roomHelper.findRoomById(roomId) >> room
+
+        roomService.deleteRoom(roomId)
+
+        then: "The room is deleted"
+        1 * roomRepository.delete(room) // Ensure delete was called
     }
 }

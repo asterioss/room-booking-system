@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: room-booking-system
+
+  security:
+    user:
+      name: ${BASIC_AUTH_USERNAME}
+      password: ${BASIC_AUTH_PASSWORD}
+
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    #properties:
+    #  hibernate:
+    #    dialect: org.hibernate.dialect.H2Dialect
+    #show-sql: true
+
+  doc:
+    swagger-ui:
+      enabled: true
+    api-docs:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
+
+# server:
+#   servlet:
+#     context-path: /api
