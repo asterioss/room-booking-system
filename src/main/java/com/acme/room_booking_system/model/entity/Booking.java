@@ -1,6 +1,5 @@
 package com.acme.room_booking_system.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)  // This enables auditing for this entity
+@EntityListeners(AuditingEntityListener.class)
 public class Booking {
 
     @Id
@@ -47,11 +46,9 @@ public class Booking {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    @JsonIgnore
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    @JsonIgnore
     private LocalDateTime updatedAt;
 }

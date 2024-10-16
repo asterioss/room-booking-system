@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)  // This enables auditing for this entity
+@EntityListeners(AuditingEntityListener.class)
 public class Room {
 
     @Id

@@ -1,11 +1,13 @@
 package com.acme.room_booking_system.config;
 
 import com.acme.room_booking_system.security.AppAuthenticationEntryPoint;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,10 +19,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private AppAuthenticationEntryPoint appAuthenticationEntryPoint;
+    private final AppAuthenticationEntryPoint appAuthenticationEntryPoint;
 
     @Value("${spring.security.user.name}")
     private String username;
@@ -30,26 +32,21 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                //disable CSRF as we're using stateless authentication and not session-based or form-based authentication
-                .csrf(csrf -> csrf.disable())
-                //allow swagger and h2 access without authentication
+        return http
+                //disable CSRF as we're using stateless authentication
+                .csrf(AbstractHttpConfigurer::disable)
+                //allow access to swagger, api-docs and h2 console without authentication
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                //disable frame options to allow H2 console access
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
-                )
+                //disable frame options to allow h2 console access
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 //enable http basic authentication
                 .httpBasic(withDefaults())
                 //exception handling for 401 unauthorized responses
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(appAuthenticationEntryPoint)
-                );
-
-        return http.build();
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(appAuthenticationEntryPoint))
+                .build();
     }
 
     //configure in-memory user for authentication with secure password hashing (BCrypt)

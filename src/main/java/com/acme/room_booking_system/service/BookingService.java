@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +32,7 @@ public class BookingService {
         List<Booking> bookings = bookingRepository.findByRoomAndDate(room, date);
 
         if (bookings == null) {
-            bookings = new ArrayList<>();
+            bookings = Collections.emptyList();
         }
 
         return bookings.stream()
@@ -45,41 +45,37 @@ public class BookingService {
 
     public BookingResponse createBooking(BookingRequest request) {
         Room room = roomHelper.findRoomByName(request.getRoomName());
-
         //validate duration and overlapping bookings
-        validateBookingDuration(request.getStartTime(), request.getEndTime());
-        validateBookingOverlap(room, request, null);
+        validateBooking(request, room, null);
 
-        Booking booking = fillBooking(room, request);
-
+        Booking booking = mapToBooking(room, request);
         booking = bookingRepository.save(booking);
 
-        return fillBookingResponse(room.getName(), booking);
+        return mapToBookingResponse(room.getName(), booking);
     }
 
     public List<BookingResponse> getAllBookings() {
         return bookingRepository.findAll().stream()
-                .map(booking -> fillBookingResponse(booking.getRoom().getName(), booking))
+                .map(booking -> mapToBookingResponse(booking.getRoom().getName(), booking))
                 .collect(Collectors.toList());
     }
 
     public BookingResponse updateBooking(Long bookingId, BookingRequest request) {
-        Booking booking = findBookingById(bookingId);
+        Booking existingBooking = findBookingById(bookingId);
         Room room = roomHelper.findRoomByName(request.getRoomName());
 
         //validate duration and overlapping bookings, excluding the current booking
-        validateBookingDuration(request.getStartTime(), request.getEndTime());
-        validateBookingOverlap(room, request, bookingId);
+        validateBooking(request, room, bookingId);
 
-        //booking.setRoom(room);
-        booking.setEmployeeEmail(request.getEmployeeEmail());
-        booking.setDate(request.getDate());
-        booking.setStartTime(request.getStartTime());
-        booking.setEndTime(request.getEndTime());
+        //existingBooking.setRoom(room);
+        existingBooking.setEmployeeEmail(request.getEmployeeEmail());
+        existingBooking.setDate(request.getDate());
+        existingBooking.setStartTime(request.getStartTime());
+        existingBooking.setEndTime(request.getEndTime());
 
-        booking = bookingRepository.save(booking);
+        Booking updatedBooking = bookingRepository.save(existingBooking);
 
-        return fillBookingResponse(room.getName(), booking);
+        return mapToBookingResponse(room.getName(), updatedBooking);
     }
 
     public void cancelBooking(Long bookingId) {
@@ -91,6 +87,11 @@ public class BookingService {
         }
 
         bookingRepository.delete(booking);
+    }
+
+    private void validateBooking(BookingRequest request, Room room, Long bookingId) {
+        validateBookingDuration(request.getStartTime(), request.getEndTime());
+        validateBookingOverlap(room, request, bookingId);
     }
 
     //validate booking duration (at least 1 hour or consecutive multiples of 1 hour)
@@ -105,17 +106,13 @@ public class BookingService {
 
     //validate if the booking overlaps with others
     private void validateBookingOverlap(Room room, BookingRequest request, Long bookingId) {
-        boolean overlapExists;
-
-        if (bookingId == null) {
-            //check for overlap when creating a new booking
-            overlapExists = bookingRepository.existsByRoomAndDateAndStartTimeBetween(
-                    room, request.getDate(), request.getStartTime(), request.getEndTime());
-        } else {
-            //check for overlap when updating a booking
-            overlapExists = bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(
-                    room, request.getDate(), request.getStartTime(), request.getEndTime(), bookingId);
-        }
+        boolean overlapExists = (bookingId == null)
+                //check for overlap when creating a new booking
+                ? bookingRepository.existsByRoomAndDateAndStartTimeBetween(
+                        room, request.getDate(), request.getStartTime(), request.getEndTime())
+                //check for overlap when updating a booking
+                : bookingRepository.existsByRoomAndDateAndStartTimeBetweenAndIdNot(
+                        room, request.getDate(), request.getStartTime(), request.getEndTime(), bookingId);
 
         if (overlapExists) {
             throw new BookingOverlapException("Booking time overlaps with another booking.");
@@ -127,7 +124,7 @@ public class BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
     }
 
-    private Booking fillBooking(Room room, BookingRequest request) {
+    private Booking mapToBooking(Room room, BookingRequest request) {
         Booking booking = new Booking();
         booking.setRoom(room);
         booking.setEmployeeEmail(request.getEmployeeEmail());
@@ -137,9 +134,9 @@ public class BookingService {
         return booking;
     }
 
-    private BookingResponse fillBookingResponse(String name, Booking booking) {
+    private BookingResponse mapToBookingResponse(String roomName, Booking booking) {
         return new BookingResponse(
-                name,
+                roomName,
                 booking.getEmployeeEmail(),
                 booking.getDate(),
                 booking.getStartTime(),

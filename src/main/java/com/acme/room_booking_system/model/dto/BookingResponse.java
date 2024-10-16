@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)  // This will exclude null values from the JSON response
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BookingResponse {
     private String roomName;
     private String employeeEmail;

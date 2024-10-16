@@ -21,10 +21,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    #properties:
-    #  hibernate:
-    #    dialect: org.hibernate.dialect.H2Dialect
-    #show-sql: true
 
   doc:
     swagger-ui:
@@ -36,7 +32,3 @@ logging:
   level:
     root: INFO
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
-
-# server:
-#   servlet:
-#     context-path: /api

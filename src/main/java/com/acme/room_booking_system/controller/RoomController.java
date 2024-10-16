@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rooms")
-@Tag(name = "Room Controller", description = "Manage rooms and their availability")
+@Tag(name = "Room Controller", description = "Manage rooms")
 @RequiredArgsConstructor
 public class RoomController {
 
@@ -29,8 +29,10 @@ public class RoomController {
     @GetMapping
     @Operation(summary = "Get All Rooms", description = "Retrieve a list of all rooms")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Rooms retrieved successfully"),
+            @ApiResponse(responseCode = "200", description = "Rooms Retrieved Successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<List<RoomResponse>> getAllRooms() {
@@ -41,10 +43,12 @@ public class RoomController {
     @PostMapping
     @Operation(summary = "Create Room", description = "Create a new room")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Room created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid room name",
+            @ApiResponse(responseCode = "201", description = "Room Created Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<RoomResponse> createRoom(@RequestBody @Valid RoomRequest roomRequest) {
@@ -55,12 +59,14 @@ public class RoomController {
     @PutMapping("/{id}")
     @Operation(summary = "Update Room", description = "Update the name of an existing room")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Room updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid room name",
+            @ApiResponse(responseCode = "200", description = "Room Updated Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Room not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<RoomResponse> updateRoom(@PathVariable Long id, @RequestBody @Valid RoomRequest roomRequest) {
@@ -71,10 +77,14 @@ public class RoomController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Room", description = "Delete an existing room")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Room deleted successfully"),
+            @ApiResponse(responseCode = "204", description = "Room Deleted Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Room not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<Void> deleteRoom(@PathVariable Long id) {

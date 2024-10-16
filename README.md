@@ -17,7 +17,7 @@ A backend system for managing room bookings. This API provides functionality to 
 
 ### Validation
 - **Overlapping Bookings**: Prevents double bookings for the same room and time slot.
-- **Minimum Duration**: Ensures bookings are at least 1 hour or in multiples thereof (e.g., 2 hours, 3 hours).
+- **Minimum Duration**: Ensures bookings are at least 1 hour or consecutive multiples of 1 hour (e.g. 2 hours, 3 hours).
 - **Room Deletion Restriction**: Rooms with active bookings cannot be deleted.
 
 ## Technologies
@@ -30,11 +30,6 @@ A backend system for managing room bookings. This API provides functionality to 
 - **Swagger** (API Documentation): [http://localhost:8080/swagger-ui/index.html#/](http://localhost:8080/swagger-ui/index.html#/)
 
 ## Setup Instructions
-
-### Prerequisites
-Ensure the following are installed:
-- Java 17+
-- Maven 3.6+
 
 ### Environment Variables
 The following environment variables are required before running the application:

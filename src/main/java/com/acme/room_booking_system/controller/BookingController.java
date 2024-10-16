@@ -30,8 +30,10 @@ public class BookingController {
     @GetMapping
     @Operation(summary = "Get All Bookings", description = "Retrieve a list of all bookings")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Bookings retrieved successfully"),
+            @ApiResponse(responseCode = "200", description = "Bookings Retrieved Successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
@@ -43,11 +45,13 @@ public class BookingController {
     @Operation(summary = "Get Bookings By Room", description = "Retrieve all bookings for a specific room and date")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Bookings retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid parameters",
+            @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Room not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<List<BookingResponse>> getBookingsByRoomAndDate(@PathVariable String roomName,
@@ -63,12 +67,14 @@ public class BookingController {
     @PostMapping
     @Operation(summary = "Create Booking", description = "Create a new booking for a room")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Booking created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid booking request",
+            @ApiResponse(responseCode = "201", description = "Booking Created Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Room not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<BookingResponse> createBooking(@RequestBody @Valid BookingRequest request) {
@@ -79,12 +85,14 @@ public class BookingController {
     @PutMapping("/{id}")
     @Operation(summary = "Update Booking", description = "Update an existing booking")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Booking updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid booking request",
+            @ApiResponse(responseCode = "200", description = "Booking Updated Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Booking or room not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id, @RequestBody @Valid BookingRequest request) {
@@ -95,10 +103,14 @@ public class BookingController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Cancel Booking", description = "Cancel an existing booking")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Booking canceled successfully"),
+            @ApiResponse(responseCode = "204", description = "Booking Canceled Successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Booking not found",
+            @ApiResponse(responseCode = "404", description = "Entity Not Found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {

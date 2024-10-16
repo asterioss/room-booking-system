@@ -15,46 +15,38 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({RoomAlreadyExistsException.class, InvalidBookingDurationException.class, IllegalArgumentException.class,
-            BookingOverlapException.class, BookingCancellationException.class, RoomDeletionException.class})
-    public ResponseEntity<ApiError> handleBadRequestExceptions(RuntimeException ex, HttpServletRequest request) {
-        log.error("Error occurred: {}", ex.getMessage());
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequestExceptions(BadRequestException ex, HttpServletRequest request) {
+        logError(ex);
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
+    }
 
-        ApiError errorResponse = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        logError(ex);
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiError> handleEntityNotFoundException(EntityNotFoundException ex, HttpServletRequest request) {
-        log.error("Error occurred: {}", ex.getMessage());
-
-        ApiError errorResponse = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        logError(ex);
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
-        log.error("Error occurred: {}", ex.getMessage());
+        logError(ex);
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request.getRequestURI());
+    }
 
-        ApiError errorResponse = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    private ResponseEntity<ApiError> buildErrorResponse(String message, HttpStatus status, String path) {
+        ApiError errorResponse = new ApiError(LocalDateTime.now(),
+                status.value(), status.getReasonPhrase(), message, path);
+
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    private void logError(Exception ex) {
+        log.error("Error occurred: {}", ex.getMessage(), ex);
     }
 }

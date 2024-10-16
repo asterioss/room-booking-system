@@ -25,7 +25,7 @@ public class RoomService {
         Room room = new Room();
         room.setName(request.getName());
 
-        roomRepository.save(room);
+        room = roomRepository.save(room);
         return new RoomResponse(room.getName());
     }
 
@@ -37,12 +37,11 @@ public class RoomService {
 
     public RoomResponse updateRoom(Long roomId, RoomRequest request) {
         Room room = roomHelper.findRoomById(roomId);
-
         roomHelper.checkRoomNameUniqueness(request.getName());
 
         room.setName(request.getName());
 
-        roomRepository.save(room);
+        room = roomRepository.save(room);
         return new RoomResponse(room.getName());
     }
 
