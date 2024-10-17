@@ -56,10 +56,6 @@ public class BookingController {
     })
     public ResponseEntity<List<BookingResponse>> getBookingsByRoomAndDate(@PathVariable String roomName,
                                                                           @RequestParam @Valid LocalDate date) {
-        if (date.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("The date cannot be in the past.");
-        }
-
         List<BookingResponse> bookings = bookingService.getBookingsByRoomAndDate(roomName, date);
         return ResponseEntity.ok(bookings);
     }
