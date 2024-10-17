@@ -18,9 +18,9 @@ spring:
     console:
       enabled: true
 
-  jpa:
-    hibernate:
-      ddl-auto: update
+  #jpa:
+  #  hibernate:
+  #    ddl-auto: update
 
   doc:
     swagger-ui:

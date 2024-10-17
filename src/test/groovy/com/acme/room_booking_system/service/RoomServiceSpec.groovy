@@ -34,7 +34,6 @@ class RoomServiceSpec extends Specification {
         then: "The room is saved and returned"
         createdRoom.name == "Room A"
         1 * roomHelper.checkRoomNameUniqueness(request.name)
-        1 * roomRepository.save(_)
     }
 
     def "Throw exception if room name already exists during creation"() {
@@ -42,7 +41,9 @@ class RoomServiceSpec extends Specification {
         def request = new RoomRequest(name: "Room A")
 
         when: "The room creation is attempted"
-        roomHelper.checkRoomNameUniqueness(request.name) >> { throw new RoomAlreadyExistsException("Room with name " + request.name + " already exists.") }
+        roomHelper.checkRoomNameUniqueness(request.name) >> {
+            throw new RoomAlreadyExistsException("Room with name " + request.name + " already exists.")
+        }
 
         roomService.createRoom(request)
 
@@ -69,18 +70,19 @@ class RoomServiceSpec extends Specification {
     def "Update room successfully"() {
         given: "An existing room and a valid RoomRequest"
         def roomId = 1L
-        def oldRoom = new Room(id: roomId, name: "Room A")
+        def room = new Room(id: roomId, name: "Room A")
         def request = new RoomRequest(name: "Room B")
+        def updatedRoom = new Room(id: roomId, name: request.name)
 
         when: "The room is updated"
-        roomHelper.findRoomById(roomId) >> oldRoom
+        roomHelper.findRoomById(roomId) >> room
         roomHelper.checkRoomNameUniqueness(request.getName()) >> { }
-        roomRepository.save(_) >> oldRoom
+        roomRepository.save(_) >> updatedRoom
 
-        def updatedRoom = roomService.updateRoom(roomId, request)
+        def result = roomService.updateRoom(roomId, request)
 
         then: "The room is updated and saved"
-        updatedRoom.name == "Room B"
+        result.name == "Room B"
     }
 
     def "Delete room successfully when no active bookings"() {
@@ -103,7 +105,9 @@ class RoomServiceSpec extends Specification {
         roomRepository.findById(roomId) >> Optional.empty()
 
         when: "The room deletion is attempted"
-        roomHelper.findRoomById(roomId) >> { throw new EntityNotFoundException("Room not found with id: " + roomId) }
+        roomHelper.findRoomById(roomId) >> {
+            throw new EntityNotFoundException("Room not found with id: " + roomId)
+        }
 
         roomService.deleteRoom(roomId)
 

@@ -10,7 +10,7 @@ A backend system for managing room bookings. This API provides functionality to 
 - **Delete** rooms (only if no active bookings are present).
 
 ### Booking Management
-- **Book** rooms for a specific time slot.
+- **Book** rooms for specific time slots.
 - **Update** existing bookings.
 - **View** bookings for a specific room and date.
 - **Cancel** future bookings (past bookings cannot be canceled).
@@ -19,6 +19,7 @@ A backend system for managing room bookings. This API provides functionality to 
 - **Overlapping Bookings**: Prevents double bookings for the same room and time slot.
 - **Minimum Duration**: Ensures bookings are at least 1 hour or consecutive multiples of 1 hour (e.g. 2 hours, 3 hours).
 - **Room Deletion Restriction**: Rooms with active bookings cannot be deleted.
+- **Past Dates/Times**: Bookings cannot be created or updated for dates or times in the past.
 
 ## Technologies
 - **Java 17**
@@ -27,7 +28,11 @@ A backend system for managing room bookings. This API provides functionality to 
 - **H2 Database** (In-memory for development)
 - **Spring Data JPA and Hibernate**
 - **Lombok**
-- **Swagger** (API Documentation): [http://localhost:8080/swagger-ui/index.html#/](http://localhost:8080/swagger-ui/index.html#/)
+- **Swagger** (API Documentation)
+
+## API Documentation
+To explore the API endpoints and their functionality, visit the Swagger UI at:
+[http://localhost:8080/swagger-ui/index.html#/](http://localhost:8080/swagger-ui/index.html#/)
 
 ## Setup Instructions
 

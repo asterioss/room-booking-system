@@ -42,7 +42,7 @@ public class BookingController {
     }
 
     @GetMapping("/{roomName}")
-    @Operation(summary = "Get Bookings By Room", description = "Retrieve all bookings for a specific room and date")
+    @Operation(summary = "Get Bookings By Room And Date", description = "Retrieve all bookings for a specific room and date")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Bookings retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Bad Request",
@@ -115,6 +115,6 @@ public class BookingController {
     })
     public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
         bookingService.cancelBooking(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }
